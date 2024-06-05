@@ -32,12 +32,15 @@ def GaussianElimination(A:np.array, b:np.array) -> np.array:
 
 # Classes
 class ThreeBodyProblem:
-    def __init__(self, m:tuple, X1:tuple, X2:tuple, X3:tuple, T, t0=0, n=1000) -> None:
+    def __init__(self, m:tuple, X11:tuple, X12:tuple, X13:tuple, X21:tuple, X22:tuple, X23:tuple, T, t0=0, n=1000) -> None:
         # Set system parameters
         self.m = m
-        self.X1 = X1
-        self.X2 = X2
-        self.X3 = X3
+        self.X11 = X11
+        self.X12 = X12
+        self.X13 = X13
+        self.X21 = X21
+        self.X22 = X22
+        self.X23 = X23
         self.T = T
         self.t0 = t0
         self.n = n
@@ -49,25 +52,33 @@ class ThreeBodyProblem:
         # Call Spline interpolation to get continuous functions
         self._SplineInterpolation()
 
-    def f(self, X, t) -> function:
-        pass
+    def f(self, X, t):
+        m1, m2, m3 = self.m
+        x_dot = np.zeros(len(X))
+        x_dot[0:3] = X[10:13]
+        x_dot[3:6] = X[13:16]
+        x_dot[6:9] = X[16:19]
+        x_dot[10:13] = -G*m2*(X[0:3]-X[3:6])/np.linalg.norm(X[0:3]-X[3:6])**3 - G*m3*(X[0:3]-X[6:9])/np.linalg.norm(X[0:3]-X[6:9])**3
+        x_dot[13:16] = -G*m1*(X[3:6]-X[0:3])/np.linalg.norm(X[3:6]-X[0:3])**3 - G*m3*(X[3:6]-X[6:9])/np.linalg.norm(X[3:6]-X[6:9])**3
+        x_dot[16:19] = -G*m1*(X[6:9]-X[0:3])/np.linalg.norm(X[6:9]-X[0:3])**3 - G*m2*(X[6:9]-X[3:6])/np.linalg.norm(X[6:9]-X[3:6])**3
+        return x_dot
 
     def _RungeKutta44(self) -> np.array:
-        self.X = np.array([])
+        self.Xs = np.array([])
         self.t = np.array([])
-        x = np.array([self.X1, self.X2, self.X3])
+        x = np.array([self.X11, self.X12, self.X13, self.X21, self.X22, self.X2])
         t = self.t0
         for i in range(self.n):
-            self.X = np.append(self.X, x)
+            self.Xs = np.append(self.Xs, x)
             self.t = np.append(self.t, t)
-            k1 = self.f(self.X, self.t)
-            k2 = self.f(self.X + self.delta/2*k1, self.t + self.delta/2)
-            k3 = self.f(self.X + self.delta/2*k2, self.t + self.delta/2)
-            k4 = self.f(self.X + self.delta*k3, self.t + self.delta)
-            x += self.delta/6*(k1 + 2*k2 + 2*k3 + k4)
+            k1 = self.f(x, self.t)
+            k2 = self.f(x + self.delta/2*k1, self.t + self.delta/2)
+            k3 = self.f(x + self.delta/2*k2, self.t + self.delta/2)
+            k4 = self.f(x + self.delta*k3, self.t + self.delta)
+            x += (self.delta/6)*(k1 + 2*k2 + 2*k3 + k4)
             t += self.delta
 
-    def _SplineInterpolation(self) -> list[function]:
+    def _SplineInterpolation(self) -> list:
         self.S_params = []
         for i in range(self.n-1):
             A = np.array()
