@@ -80,10 +80,29 @@ class ThreeBodyProblem:
 
     def _SplineInterpolation(self) -> list:
         self.S_params = []
-        for i in range(self.n-1):
-            A = np.array()
-            b = np.array()
-            self.S_params.append(GaussianElimination(A, b))
+        for i in range(1,self.n-1):
+            t_diff1 = self.t[i] - self.t[i-1]
+            t_diff2 = self.t[i+1] - self.t[i]
+            zeros = np.zeros(len(self.Xs[i]))
+            base = np.ones(len(self.Xs[i]))
+            A = np.array([
+                [base,zeros,zeros,zeros,zeros,zeros,zeros,zeros],
+                [base, t_diff1*base, (t_diff1**2)*base, (t_diff1**3)*base, zeros, zeros, zeros, zeros],
+                [zeros,zeros,zeros,zeros,base,zeros,zeros,zeros],
+                [zeros,zeros,zeros,zeros,base, t_diff2*base, (t_diff2**2)*base, (t_diff2**3)*base],
+                [zeros,base,(2*t_diff1)*base,(3*t_diff1**2)*base,zeros,-base,zeros,zeros],
+                [zeros,zeros,2*base,(6*t_diff1)*base,zeros,zeros,-2*base,zeros],
+                [zeros,base,zeros,zeros,zeros,zeros,zeros,zeros],
+                [zeros,zeros,zeros,zeros,zeros,base,(2*t_diff2)*base,(3*t_diff2**2)*base]
+            ])
+            b = np.array([self.Xs[i-1], self.Xs[i], self.Xs[i], self.Xs[i+1], zeros, zeros, self.f(self.Xs[i-1],self.t[i-1]), self.f(self.Xs[i+1],self.t[i+1])])
+            self.S_params.append(GaussianElimination(A, b)[0:4])
     
     def S(self, t) -> np.array:
-        pass
+        ind = 0
+        for idx, num in enumerate(self.t):
+            if num >= t:
+                ind = idx
+        params = self.S_params[ind]
+        t_diff = self.t[ind-1] - self.t[ind-2]
+        return params[0] + params[1]*t_diff + params[2]*(t_diff)**2 + params[3]*(t_diff)**3
