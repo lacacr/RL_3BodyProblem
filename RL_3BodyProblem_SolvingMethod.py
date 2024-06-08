@@ -2,13 +2,9 @@
 import numpy as np
 import math
 
-# Constants
-#G = 6.67430e-11
-
 # Functions
 def GaussianElimination(A:np.array, b:np.array) -> np.array:
     n = len(b)
-    print(b.shape)
     for i in range(n-1):
         # Partial pivoting
         max_row = i
@@ -80,19 +76,20 @@ class ThreeBodyProblem:
         for i in range(1,self.n-1):
             t_diff1 = self.t[i] - self.t[i-1]
             t_diff2 = self.t[i+1] - self.t[i]
-            zeros = np.zeros(len(self.Xs[i]))
-            base = np.ones(len(self.Xs[i]))
+            zeros = np.zeros(shape=(len(self.Xs[i]), len(self.Xs[i])))
+            base = np.identity(len(self.Xs[i]))
+            zero = np.zeros(len(self.Xs[i]))
             A = np.vstack((
-                np.array([base,zeros,zeros,zeros,zeros,zeros,zeros,zeros]),
-                np.array([base, t_diff1*base, (t_diff1**2)*base, (t_diff1**3)*base, zeros, zeros, zeros, zeros]),
-                np.array([zeros,zeros,zeros,zeros,base,zeros,zeros,zeros]),
-                np.array([zeros,zeros,zeros,zeros,base, t_diff2*base, (t_diff2**2)*base, (t_diff2**3)*base]),
-                np.array([zeros,base,(2*t_diff1)*base,(3*t_diff1**2)*base,zeros,-base,zeros,zeros]),
-                np.array([zeros,zeros,2*base,(6*t_diff1)*base,zeros,zeros,-2*base,zeros]),
-                np.array([zeros,base,zeros,zeros,zeros,zeros,zeros,zeros]),
-                np.array([zeros,zeros,zeros,zeros,zeros,base,(2*t_diff2)*base,(3*t_diff2**2)*base])
+                np.hstack((base,zeros,zeros,zeros,zeros,zeros,zeros,zeros)),
+                np.hstack((base, t_diff1*base, (t_diff1**2)*base, (t_diff1**3)*base, zeros, zeros, zeros, zeros)),
+                np.hstack((zeros,zeros,zeros,zeros,base,zeros,zeros,zeros)),
+                np.hstack((zeros,zeros,zeros,zeros,base, t_diff2*base, (t_diff2**2)*base, (t_diff2**3)*base)),
+                np.hstack((zeros,base,(2*t_diff1)*base,(3*t_diff1**2)*base,zeros,-base,zeros,zeros)),
+                np.hstack((zeros,zeros,2*base,(6*t_diff1)*base,zeros,zeros,-2*base,zeros)),
+                np.hstack((zeros,base,zeros,zeros,zeros,zeros,zeros,zeros)),
+                np.hstack((zeros,zeros,zeros,zeros,zeros,base,(2*t_diff2)*base,(3*t_diff2**2)*base))
             ))
-            b = np.hstack((self.Xs[i-1], self.Xs[i], self.Xs[i], self.Xs[i+1], zeros, zeros, self.f(self.Xs[i-1],self.t[i-1]), self.f(self.Xs[i+1],self.t[i+1])))
+            b = np.hstack((self.Xs[i-1], self.Xs[i], self.Xs[i], self.Xs[i+1], zero, zero, self.f(self.Xs[i-1],self.t[i-1]), self.f(self.Xs[i+1],self.t[i+1])))
             self.S_params.append(GaussianElimination(A, b)[0:4])
     
     def S(self, t) -> np.array:
