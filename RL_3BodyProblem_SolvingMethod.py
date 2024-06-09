@@ -60,14 +60,14 @@ class ThreeBodyProblem:
         self.t = np.array([])
         x = self.X
         t = self.t0
-        self.Xs = []
+        self.Xs = x
         for i in range(self.n):
-            self.Xs.append(x)
+            self.Xs = np.vstack((self.Xs, x))
             self.t = np.append(self.t, t)
-            k1 = self.f(x, self.t)
-            k2 = self.f(x + self.delta/2*k1, self.t + self.delta/2)
-            k3 = self.f(x + self.delta/2*k2, self.t + self.delta/2)
-            k4 = self.f(x + self.delta*k3, self.t + self.delta)
+            k1 = self.f(x, t)
+            k2 = self.f(x + self.delta/2*k1, t + self.delta/2)
+            k3 = self.f(x + self.delta/2*k2, t + self.delta/2)
+            k4 = self.f(x + self.delta*k3, t + self.delta)
             x += (self.delta/6)*(k1 + 2*k2 + 2*k3 + k4)
             t += self.delta
 
@@ -90,13 +90,13 @@ class ThreeBodyProblem:
                 np.hstack((zeros,zeros,zeros,zeros,zeros,base,(2*t_diff2)*base,(3*t_diff2**2)*base))
             ))
             b = np.hstack((self.Xs[i-1], self.Xs[i], self.Xs[i], self.Xs[i+1], zero, zero, self.f(self.Xs[i-1],self.t[i-1]), self.f(self.Xs[i+1],self.t[i+1])))
-            self.S_params.append(GaussianElimination(A, b)[0:4])
+            self.S_params.append(GaussianElimination(A, b)[0:72])
     
     def S(self, t) -> np.array:
         ind = 0
         for idx, num in enumerate(self.t):
-            if num >= t:
+            if num <= t:
                 ind = idx
         params = self.S_params[ind]
         t_diff = self.t[ind-1] - self.t[ind-2]
-        return params[0] + params[1]*t_diff + params[2]*(t_diff)**2 + params[3]*(t_diff)**3
+        return params[0:18] + params[18:36]*t_diff + params[36:54]*(t_diff)**2 + params[54:72]*(t_diff)**3
