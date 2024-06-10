@@ -29,7 +29,7 @@ def GaussianElimination(A:np.array, b:np.array) -> np.array:
 
 # Classes
 class ThreeBodyProblem:
-    def __init__(self, m:tuple, X: np.array, T, t0=0, n=1000, G=6.67430e-11) -> None:
+    def __init__(self, m:tuple, X: np.array, T, t0=0, n=1000, G=6.67430e-11, Spline=False) -> None:
         # Set system parameters
         self.m = m
         self.X = X
@@ -43,7 +43,8 @@ class ThreeBodyProblem:
         # Call Runge-Kutta 4-4 method for solving the system
         self._RungeKutta44()
         # Call Spline interpolation to get continuous functions
-        self._SplineInterpolation()
+        if Spline:
+            self._SplineInterpolation()
 
     def f(self, X, t):
         m1, m2, m3 = self.m
