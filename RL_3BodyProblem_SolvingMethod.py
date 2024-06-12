@@ -27,6 +27,23 @@ def GaussianElimination(A:np.array, b:np.array) -> np.array:
     
     return x
 
+def estimated_convergence(m, t0, y0, t, delta_t, N, G):
+    entries = []
+    for i in range(N):
+        h = delta_t / 2**i
+        N1 = (t-t0)/h
+        n1 = ThreeBodyProblem(m, y0, t, t0, N1, G).Xs[-1]
+        N2 = (t-t0)/(h/2)
+        n2 = ThreeBodyProblem(m, y0, t, t0, N2, G).Xs[-1]
+        N3 = (t-t0)/(2*h)
+        n3 = ThreeBodyProblem(m, y0, t, t0, N3, G).Xs[-1]
+        e1 = abs(n3-n1)
+        e2 = abs(n1-n2)
+        q = e1/e2
+        p = math.log2(q)
+        entries.append([2**i, h, e1, p])
+    return entries
+
 # Classes
 class ThreeBodyProblem:
     def __init__(self, m:tuple, X: np.array, T, t0=0, n=1000, G=6.67430e-11, Spline=False) -> None:
