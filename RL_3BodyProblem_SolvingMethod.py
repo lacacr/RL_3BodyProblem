@@ -27,6 +27,18 @@ def GaussianElimination(A:np.array, b:np.array) -> np.array:
     
     return x
 
+def list_of_lists_to_latex_table(data):
+    table = "\\begin{tabular}{|" + "c|" * len(data[0]) + "}\n"
+    table += "\\hline\n"
+    
+    for row in data:
+        table += " & ".join(map(str, row)) + " \\\\\n"
+        table += "\n"
+    
+    table += "\\end{tabular}"
+    
+    return table
+
 def estimated_convergence(m, t0, y0, t, delta_t, N, G):
     entries = []
     for i in range(N):
@@ -42,7 +54,7 @@ def estimated_convergence(m, t0, y0, t, delta_t, N, G):
         q = e1/e2
         p = math.log2(q)
         entries.append([2**i, h, e1, p])
-    return entries
+    list_of_lists_to_latex_table(entries)
 
 # Classes
 class ThreeBodyProblem:
