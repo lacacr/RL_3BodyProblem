@@ -56,6 +56,22 @@ def estimated_convergence(m, t0, y0, t, delta_t, N, G):
         entries.append([2**i, h, e1, p])
     list_of_lists_to_latex_table(entries)
 
+def RK44(f, t0, y0, T, delta_t):
+    n = (T-t0)/delta_t
+    ts = np.array([])
+    y = y0
+    t = t0
+    Xs = y0
+    for i in range(n):
+        Xs = np.vstack((Xs, y))
+        ts = np.append(ts, t)
+        k1 = f(y, t)
+        k2 = f(y + delta_t/2*k1, t + delta_t/2)
+        k3 = f(y + delta_t/2*k2, t + delta_t/2)
+        k4 = f(y + delta_t*k3, t + delta_t)
+        x += (delta_t/6)*(k1 + 2*k2 + 2*k3 + k4)
+        t += delta_t
+
 # Classes
 class ThreeBodyProblem:
     def __init__(self, m:tuple, X: np.array, T, t0=0, n=1000, G=6.67430e-11, Spline=False) -> None:
